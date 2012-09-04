@@ -1,85 +1,51 @@
 from sys import argv
 
-def compiler(code):
-	compiler.func(code)
+def o(x,*a):
+	o.code.append(x%a)
+o.code=[]
 
-def setcompiler(func):
-	compiler.func=func
+class Pos: pass
 
+pos=Pos()
 
+def compile_def(name,rest):
+	words=rest.split()
+	o("static void lang_%s(void) {",name)
+	for x in words:
+		o("\tlang_%s();",x)
+	o("}")
 
-###############################################################
+def compile_c(l):
+	o(l)
 
-def default(code):
-	print('default')
-
-def interpret(code):
-	w=code.word()
-	macro.all.get(w,compile)(code,w)
-
-def compile(code,w):
-	print("	%s();"%(w,))
+def compile_cdef(rest):
+	name,code=rest.split(None,1)
+	o("static void lang_%s(void) {",name)
+	o("\t"+code)
+	o("}")
 	
 
-###############################################################
+def compile_line(l):
+	t=l.split(None,1)
+	if not t: return
 
-def macro(x):
-	if x.__doc__:
-		macro.all[x.__doc__]=x
-	else:
-		macro.all[x.__name__[1:]]=x
-macro.all={}
+	name,rest=t
 
-
-@macro
-def mcolon(code,w):
-	":"
-	w=code.word()
-	print("void %s(void) {"%(w,))
-
-@macro
-def msemicolon(code,w):
-	";"
-	print("}")
-
-###############################################################
-
-setcompiler(interpret)
-
-class EOF(Exception):
-	pass
-
-def word(f):
-	word=""
-	x=' '
-	while x==' ':
-		x=f.read(1)
-		if not x:
-			raise(EOF)
-		if x=='\n':
-			f.lineno+=1
-			x=' '
-
-	while x!=' ':
-		word=word+x
-		x=f.read(1)
-		if not x: break
-		if x=='\n':
-			f.lineno+=1
-			x=' '
-	return word
-	
+	if name=='c': compile_c(rest)
+	elif name=='cdef': compile_cdef(rest)
+	else: compile_def(name,rest)
 
 def compile_file(name):
-	code=open(name)
-	code.word=lambda: word(code)
-	code.lineno=1
+	pos.name=name
+	lines=open(name).readlines()
+	for i in range(len(lines)):
+		pos.line=i
+		compile_line(lines[i])
 
-	try:
-		while True:
-			compiler(code)
-	except EOF:
-		pass
+def compile_all(t,l):
+	for x in l:
+		compile_file(x)
+	open(t,'w').write("\n".join(o.code))
 
-compile_file(argv[1])
+compile_all(argv[1],argv[2:])
 

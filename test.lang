@@ -1,13 +1,7 @@
+c #include <stdlib.h>
 
+cdef exit exit(0);
 
-: fizz 1+ ." fizz " ;
-: buzz 1+ ." buzz " ;
-: fizzbuzz 1+ ." fizzbuzz " ;
-: n 1+ dup . ;
-: bange n n fizz n buzz fizz n n fizz buzz ;
-: bang bange n fizz n n fizzbuzz ;
+main exit
 
-: main 0 bang bang bang bang bang bang bange drop cr bye ;
-
-
-
+c void main(void) { lang_exit(); }
