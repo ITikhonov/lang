@@ -124,10 +124,9 @@
 -	o("static void lang_%s(void) {",mangle(name))
 -	while words:
 -		l=trymacro(words)
--		if l:
--			words=l
--		else:
--			o("\tlang_%s();",mangle(words.pop()))
+-		if l: words=l
+-		elif words[0].isdigit(): o("\tlang_internal_push(%u);",int(words.pop(0)))
+-		else: o("\tlang_%s();",mangle(words.pop(0)))
 -	o("}")
 
 -def compile_c(l):

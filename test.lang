@@ -5,11 +5,13 @@ data planet 128 x y z radius name
 
 cdef exit exit(0);
 cdef print printf("%u\n",lang_internal_pop());
+cdef + lang_internal_push(lang_internal_pop()+lang_internal_pop());
+cdef dup CELL x=lang_internal_pop(); lang_internal_push(x); lang_internal_push(x);
 
 printp planet@x print
 
-set 11 planet!x
+set 1 + dup planet!x
 
-main planet.rep set planet.rep printp exit
+main 0 planet.rep set planet.rep printp exit
 
 c void main(void) { lang_main(); }
