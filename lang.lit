@@ -1,19 +1,133 @@
-=> main.py
+	Macros are words defined in python and are run at compile time.
+
+	Each macro accepts rest of words in the line and returns list of
+	words to replace original with.
+
+	Function macro searches for macro and executes it. If no macro found,
+	returns None.
+
+=macro
+-def trymacro(l):
+-	f=trymacro.all.get(l[0])
+-	if f: return f(l[1:])
+-	return
+-trymacro.all={}
+
+	Macros are defined with @macro decorator. Macro name is expected to
+	be either have 'm_' prefix or have docstring with real name like
+
+		def newmacro(l):
+			";werid-name"
+			...
+
+-def macro(f,n=None):
+-	if n: name=n
+-	elif f.__doc__: name=f.__doc__
+-	else: name=f.__name__[2:]
+-	trymacro.all[name]=f
+
+
+
+
+	The core of forth is data stack and addressing register.
+
+=stack
+-c #include <stdint.h>
+-c typedef uint64_t CELL;
+-c static CELL lang_internal_stack[16];
+-c static CELL *lang_internal_tos=lang_internal_stack-1;
+-c static CELL lang_internal_a;
+-c void lang_internal_push(CELL x) { lang_internal_tos++; *lang_internal_tos=x; }
+-c CELL lang_internal_pop(void) { CELL x=*lang_internal_tos--; return x; }
+
+
+
+
+	Forth allow many names which are not valid C identifiers.
+	We convert everything not in [a-z] into _HEXCHARCODE_. So
+	word 1+ will become _31__2B_
+
+=mangle
+-def mangle_char(x):
+-	if x not in "abcdefghijklmnopqrstuvwxyz": return "_%02X_"%(ord(x),)
+-	return x
+
+-def mangle(name):
+-	return ''.join([mangle_char(x) for x in name])
+
+
+
+
+	All data is stored in database fashion. For each type
+	of data schema is defined, which also defines words to
+	access this data.
+
+	To create array of 128 planets use:
+
+		data planet 128 x y z radius name
+
+=data
+-def compile_data(rest):
+-	args=rest.split()
+-	name,size=args[:2]
+-	size=int(size)
+-	fields=args[2:]
+-	o("struct lang_data_%s {",mangle(name))
+-	for x in fields:
+-		o("\tCELL %s;",mangle(x))
+-	o("} lang_data_%s[%u];",mangle(name),size)
+
+	To access planet field use:
+
+		planet.radius ( index -- v )
+
+-	for x in fields:
+-		o("void lang_%s(void) { lang_internal_push(lang_data_%s[lang_internal_a].%s); }",mangle(name+'@'+x),mangle(name),mangle(x))
+-		o("void lang_%s(void) { lang_data_%s[lang_internal_a].%s=lang_internal_pop(); }",mangle(name+'!'+x),mangle(name),mangle(x))
+
+	To iterate over all planets use:
+
+		planet.each word
+		word ( -- )
+-	macro(lambda l: template_data_rep(size,l),name+'.rep')
+
+-def template_data_rep(size,l):
+-	o("\tfor(lang_internal_a=0;lang_internal_a<%u;lang_internal_a++) { lang_%s(); }",size,l[0])
+-	return l[1:]
+
+
+
+
+	Initially it was written as illiterate code.
+
+=>main.py
 -from sys import argv
 
+>mangle
+>macro
+
 -def o(x,*a):
--	o.code.append(x%a)
+-	if a:
+-		o.code.append(x%a)
+-	else:
+-		o.code.append(x)
 -o.code=[]
 
 -class Pos: pass
 
 -pos=Pos()
 
+>data
+
 -def compile_def(name,rest):
 -	words=rest.split()
--	o("static void lang_%s(void) {",name)
--	for x in words:
--		o("\tlang_%s();",x)
+-	o("static void lang_%s(void) {",mangle(name))
+-	while words:
+-		l=trymacro(words)
+-		if l:
+-			words=l
+-		else:
+-			o("\tlang_%s();",mangle(words.pop()))
 -	o("}")
 
 -def compile_c(l):
@@ -21,7 +135,7 @@
 
 -def compile_cdef(rest):
 -	name,code=rest.split(None,1)
--	o("static void lang_%s(void) {",name)
+-	o("static void lang_%s(void) {",mangle(name))
 -	o("\t"+code)
 -	o("}")
 -	
@@ -33,6 +147,7 @@
 -	name,rest=t
 
 -	if name=='c': compile_c(rest)
+-	elif name=='data': compile_data(rest)
 -	elif name=='cdef': compile_cdef(rest)
 -	else: compile_def(name,rest)
 
@@ -49,4 +164,8 @@
 -	open(t,'w').write("\n".join(o.code))
 
 -compile_all(argv[1],argv[2:])
+
+
+=>runtime.lang
+>stack
 

@@ -1,7 +1,15 @@
 c #include <stdlib.h>
+c #include <stdio.h>
+
+data planet 128 x y z radius name
 
 cdef exit exit(0);
+cdef print printf("%u\n",lang_internal_pop());
 
-main exit
+printp planet@x print
 
-c void main(void) { lang_exit(); }
+set 11 planet!x
+
+main planet.rep set planet.rep printp exit
+
+c void main(void) { lang_main(); }
