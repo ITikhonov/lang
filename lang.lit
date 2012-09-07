@@ -124,8 +124,8 @@
 -	o("static void lang_%s(void) {",mangle(name))
 -	while words:
 -		l=trymacro(words)
--		if l: words=l
--		elif words[0].isdigit(): o("\tlang_internal_push(%u);",int(words.pop(0)))
+-		if l is not None: words=l
+-		elif words[0].isdigit(): o("\tlang_internal_push(%uu);",int(words.pop(0)))
 -		else: o("\tlang_%s();",mangle(words.pop(0)))
 -	o("}")
 
@@ -178,10 +178,16 @@ Stack operations
 -cdef dup CELL x=lang_internal_pop(); lang_internal_push(x); lang_internal_push(x);
 -cdef swap CELL x=lang_internal_pop(); CELL y=lang_internal_pop(); lang_internal_push(x); lang_internal_push(y);
 
+Register A holds index during rep.
+
+=regs
+-cdef a lang_internal_push(lang_internal_a);
+
 
 =>runtime.lang
 >stack
 >stackops
+>regs
 
 
 
@@ -200,13 +206,17 @@ Arithmetics
 -cdef *	lang_internal_push(lang_internal_pop()*lang_internal_pop());
 -cdef +	lang_internal_push(lang_internal_pop()+lang_internal_pop());
 -cdef /	CELL x=lang_internal_pop(); lang_internal_push(lang_internal_pop()/x);
+-cdef */ CELL d=lang_internal_pop(); CELL m=lang_internal_pop(); unsigned __int128 z=lang_internal_pop()*m; lang_internal_push(z/d);
 
 Trigonometry. For trigonometry we use 64-bitians, 1<<64 of them are full rotation.
 
 =trig
 -cdef cos lang_internal_push(cos(lang_internal_pop()/18446744073709551616.0));
+-cdef sin lang_internal_push(sin(lang_internal_pop()/18446744073709551616.0));
 
 
 =>math.lang
+-c #include <math.h>
 >bitops
 >arith
+>trig
