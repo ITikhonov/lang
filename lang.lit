@@ -154,7 +154,8 @@
 -	pos.name=name
 -	lines=open(name).readlines()
 -	for i in range(len(lines)):
--		pos.line=i
+-		pos.line=i+1
+-		pos.str=lines[i]
 -		compile_line(lines[i])
 
 -def compile_all(t,l):
@@ -162,9 +163,50 @@
 -		compile_file(x)
 -	open(t,'w').write("\n".join(o.code))
 
--compile_all(argv[1],argv[2:])
+-try:
+-	compile_all(argv[1],argv[2:])
+-except:
+-	print()
+-	print('Error at %s:%u'%(pos.name,pos.line))
+-	print('\t| %s'%(pos.str,))
+-	raise
+
+
+Stack operations
+
+=stackops
+-cdef dup CELL x=lang_internal_pop(); lang_internal_push(x); lang_internal_push(x);
+-cdef swap CELL x=lang_internal_pop(); CELL y=lang_internal_pop(); lang_internal_push(x); lang_internal_push(y);
 
 
 =>runtime.lang
 >stack
+>stackops
 
+
+
+Bit operations
+
+=bitops
+-cdef and lang_internal_push(lang_internal_pop()&lang_internal_pop());
+-cdef or lang_internal_push(lang_internal_pop()|lang_internal_pop());
+-cdef xor lang_internal_push(lang_internal_pop()^lang_internal_pop());
+-cdef shl CELL x=lang_internal_pop(); lang_internal_push(lang_internal_pop()<<x);
+-cdef shr CELL x=lang_internal_pop(); lang_internal_push(lang_internal_pop()>>x);
+
+Arithmetics
+
+=arith
+-cdef *	lang_internal_push(lang_internal_pop()*lang_internal_pop());
+-cdef +	lang_internal_push(lang_internal_pop()+lang_internal_pop());
+-cdef /	CELL x=lang_internal_pop(); lang_internal_push(lang_internal_pop()/x);
+
+Trigonometry. For trigonometry we use 64-bitians, 1<<64 of them are full rotation.
+
+=trig
+-cdef cos lang_internal_push(cos(lang_internal_pop()/18446744073709551616.0));
+
+
+=>math.lang
+>bitops
+>arith
