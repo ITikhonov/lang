@@ -206,13 +206,15 @@ Arithmetics
 -cdef *	lang_internal_push(lang_internal_pop()*lang_internal_pop());
 -cdef +	lang_internal_push(lang_internal_pop()+lang_internal_pop());
 -cdef /	CELL x=lang_internal_pop(); lang_internal_push(lang_internal_pop()/x);
--cdef */ CELL d=lang_internal_pop(); CELL m=lang_internal_pop(); unsigned __int128 z=lang_internal_pop()*m; lang_internal_push(z/d);
+-cdef */ CELL d=lang_internal_pop(); CELL m=lang_internal_pop(); unsigned __int128 z=lang_internal_pop(); z*=m; lang_internal_push(z/d);
 
-Trigonometry. For trigonometry we use 64-bitians, 1<<64 of them are full rotation.
+Trigonometry. For trigonometry we use 64-bitians, 1<<64 of them are full rotation. For -1..1 values
+we use 9223372036854775807 as 1.
 
 =trig
--cdef cos lang_internal_push(cos(lang_internal_pop()/18446744073709551616.0));
--cdef sin lang_internal_push(sin(lang_internal_pop()/18446744073709551616.0));
+-trig1 9223372036854775807
+-cdef cos lang_internal_push(9223372036854775807*cos(lang_internal_pop()/18446744073709551616.0));
+-cdef sin lang_internal_push(9223372036854775807*sin(lang_internal_pop()/18446744073709551616.0));
 
 
 =>math.lang
@@ -220,3 +222,18 @@ Trigonometry. For trigonometry we use 64-bitians, 1<<64 of them are full rotatio
 >bitops
 >arith
 >trig
+
+=output
+-cdef print printf("%lu ",lang_internal_pop());
+-cdef cr printf("\n");
+
+=time
+-cdef time64 struct timeval t; gettimeofday(&t,0); lang_internal_push((t.tv_sec<<32)|t.tv_usec);
+
+
+=>lib.lang
+-c #include <stdio.h>
+-c #include <sys/time.h>
+>output
+>time
+
