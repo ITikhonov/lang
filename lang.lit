@@ -34,6 +34,7 @@
 =stack
 -c #include <stdint.h>
 -c typedef uint64_t CELL;
+-c typedef int64_t SCELL;
 -c static CELL lang_internal_stack[16];
 -c static CELL *lang_internal_tos=lang_internal_stack-1;
 -c static CELL lang_internal_a;
@@ -98,6 +99,16 @@
 
 
 
+	Conditional is simple ?; which exists if stack is zero.
+
+=cond
+-@macro
+-def returnonzero(l):
+-	"?;"
+-	o('if(lang_internal_pop()==0) return;')
+-	return l
+
+
 	Initially it was written as illiterate code.
 
 =>main.py
@@ -105,6 +116,7 @@
 
 >mangle
 >macro
+>cond
 
 -def o(x,*a):
 -	if a:
@@ -171,12 +183,15 @@
 -	print('\t| %s'%(pos.str,))
 -	raise
 
+-print(trymacro.all)
+
 
 Stack operations
 
 =stackops
 -cdef dup CELL x=lang_internal_pop(); lang_internal_push(x); lang_internal_push(x);
 -cdef swap CELL x=lang_internal_pop(); CELL y=lang_internal_pop(); lang_internal_push(x); lang_internal_push(y);
+-cdef drop lang_internal_pop();
 
 Register A holds index during rep.
 
@@ -203,18 +218,18 @@ Bit operations
 Arithmetics
 
 =arith
--cdef *	lang_internal_push(lang_internal_pop()*lang_internal_pop());
+-cdef *	lang_internal_push(((SCELL)lang_internal_pop())*((SCELL)lang_internal_pop()));
 -cdef +	lang_internal_push(lang_internal_pop()+lang_internal_pop());
--cdef /	CELL x=lang_internal_pop(); lang_internal_push(lang_internal_pop()/x);
--cdef */ CELL d=lang_internal_pop(); CELL m=lang_internal_pop(); unsigned __int128 z=lang_internal_pop(); z*=m; lang_internal_push(z/d);
+-cdef /	SCELL x=lang_internal_pop(); lang_internal_push(((SCELL)lang_internal_pop())/x);
+-cdef */ SCELL d=lang_internal_pop(); SCELL m=lang_internal_pop(); signed __int128 z=(SCELL)lang_internal_pop(); z*=m; lang_internal_push(z/d);
 
 Trigonometry. For trigonometry we use 64-bitians, 1<<64 of them are full rotation. For -1..1 values
 we use 9223372036854775807 as 1.
 
 =trig
 -trig1 9223372036854775807
--cdef cos lang_internal_push(9223372036854775807*cos(lang_internal_pop()/18446744073709551616.0));
--cdef sin lang_internal_push(9223372036854775807*sin(lang_internal_pop()/18446744073709551616.0));
+-cdef cos SCELL x=9223372036854775807*cos(2*M_PI*(lang_internal_pop()/18446744073709551616.0)); lang_internal_push(x);
+-cdef sin SCELL x=9223372036854775807*sin(2*M_PI*(lang_internal_pop()/18446744073709551616.0)); lang_internal_push(x);
 
 
 =>math.lang
@@ -225,6 +240,7 @@ we use 9223372036854775807 as 1.
 
 =output
 -cdef print printf("%lu ",lang_internal_pop());
+-cdef sprint printf("%ld ",(SCELL)lang_internal_pop());
 -cdef cr printf("\n");
 
 =time
