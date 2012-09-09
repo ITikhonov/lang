@@ -221,7 +221,20 @@ Arithmetics
 -cdef *	lang_internal_push(((SCELL)lang_internal_pop())*((SCELL)lang_internal_pop()));
 -cdef +	lang_internal_push(lang_internal_pop()+lang_internal_pop());
 -cdef /	SCELL x=lang_internal_pop(); lang_internal_push(((SCELL)lang_internal_pop())/x);
+
+	Use gcc extension type to handle */ if available
+
+-c #ifdef __SIZEOF_INT128__
 -cdef */ SCELL d=lang_internal_pop(); SCELL m=lang_internal_pop(); signed __int128 z=(SCELL)lang_internal_pop(); z*=m; lang_internal_push(z/d);
+
+	Use assembly otherwise (on OSX).
+-c #else
+-cdef */ SCELL y,d=lang_internal_pop(),m=lang_internal_pop(),x=lang_internal_pop(); asm("imulq %2\nidivq %3\n":"=a"(y):"a"(x),"r"(m),"r"(d) :"%rax","%rdx"); lang_internal_push(y);
+-c #endif
+
+
+
+
 
 Trigonometry. For trigonometry we use 64-bitians, 1<<64 of them are full rotation. For -1..1 values
 we use 9223372036854775807 as 1.
