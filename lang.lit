@@ -116,6 +116,25 @@
 -	return l
 
 
+
+	Output is initially accumulated as a list of strings.
+	We also have special case for function prototypes.
+
+=coutput
+-def o(x,*a,**kw):
+-	w=o.code
+-	if kw:
+-		w=o.proto
+-	if a:
+-		w.append(x%a)
+-	else:
+-		w.append(x)
+-o.code=[]
+-o.proto=[]
+
+
+
+
 	Initially it was written as illiterate code.
 
 =>main.py
@@ -125,12 +144,7 @@
 >macro
 >cond
 
--def o(x,*a):
--	if a:
--		o.code.append(x%a)
--	else:
--		o.code.append(x)
--o.code=[]
+>coutput
 
 -class Pos: pass
 
@@ -141,6 +155,7 @@
 -def compile_def(name,rest):
 -	words=rest.split()
 -	o("static void lang_%s(void) {",mangle(name))
+-	o("static void lang_%s(void);",mangle(name),proto=1)
 -	while words:
 -		l=trymacro(words)
 -		if l is not None: words=l
@@ -154,6 +169,7 @@
 -def compile_cdef(rest):
 -	name,code=rest.split(None,1)
 -	o("static void lang_%s(void) {",mangle(name))
+-	o("static void lang_%s(void);",mangle(name),proto=1)
 -	o("\t"+code)
 -	o("}")
 -	
@@ -180,7 +196,7 @@
 -def compile_all(t,l):
 -	for x in l:
 -		compile_file(x)
--	open(t,'w').write("\n".join(o.code))
+-	open(t,'w').write("\n".join(o.proto+o.code))
 
 -try:
 -	compile_all(argv[1],argv[2:])

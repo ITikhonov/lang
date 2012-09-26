@@ -10,6 +10,8 @@ printp planet@x print
 
 set 1 + dup planet!x
 
-main 0 planet.rep set planet.rep printp exit
+main 0 planet.rep set planet.rep printp test exit
+
+test 0 drop
 
 c void main(void) { lang_main(); }
