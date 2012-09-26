@@ -154,12 +154,15 @@
 
 -def compile_def(name,rest):
 -	words=rest.split()
--	o("static void lang_%s(void) {",mangle(name))
+-	o("static void lang_%s(void) { _tailcall:;",mangle(name))
 -	o("static void lang_%s(void);",mangle(name),proto=1)
 -	while words:
 -		l=trymacro(words)
 -		if l is not None: words=l
 -		elif words[0].isdigit(): o("\tlang_internal_push(%uu);",int(words.pop(0)))
+-		elif words[0]==name and len(words)==1:
+-			o("\tgoto _tailcall;")
+-			words.pop(0)
 -		else: o("\tlang_%s();",mangle(words.pop(0)))
 -	o("}")
 
@@ -244,6 +247,7 @@ Arithmetics
 =arith
 -cdef *	lang_internal_push(((SCELL)lang_internal_pop())*((SCELL)lang_internal_pop()));
 -cdef +	lang_internal_push(lang_internal_pop()+lang_internal_pop());
+-cdef -	CELL a=lang_internal_pop(); CELL b=lang_internal_pop(); lang_internal_push(b-a);
 -cdef /	SCELL x=lang_internal_pop(); lang_internal_push(((SCELL)lang_internal_pop())/x);
 -cdef */ SCELL d=lang_internal_pop(); SCELL m=lang_internal_pop(); signed __int128 z=(SCELL)lang_internal_pop(); z*=m; lang_internal_push(z/d);
 

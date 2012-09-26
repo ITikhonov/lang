@@ -10,7 +10,7 @@ printp planet@x print
 
 set 1 + dup planet!x
 
-main 0 planet.rep set planet.rep printp test exit
+main 0 planet.rep set planet.rep printp test 10 1 - print exit
 
 test 0 drop
 
