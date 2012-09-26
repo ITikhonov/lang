@@ -80,11 +80,18 @@
 
 	To access planet field use:
 
-		planet.radius ( index -- v )
+		planet@radius ( -- v )
+		planet!radius ( v -- )
+
+	For data with size 1 the only record is used always. For
+	other sizes, internal register 'a' used.
+
+-	if size==1: index="0"
+-	else: index="lang_internal_a"
 
 -	for x in fields:
--		o("void lang_%s(void) { lang_internal_push(lang_data_%s[lang_internal_a].%s); }",mangle(name+'@'+x),mangle(name),mangle(x))
--		o("void lang_%s(void) { lang_data_%s[lang_internal_a].%s=lang_internal_pop(); }",mangle(name+'!'+x),mangle(name),mangle(x))
+-		o("void lang_%s(void) { lang_internal_push(lang_data_%s[%s].%s); }",mangle(name+'@'+x),mangle(name),index,mangle(x))
+-		o("void lang_%s(void) { lang_data_%s[%s].%s=lang_internal_pop(); }",mangle(name+'!'+x),mangle(name),index,mangle(x))
 
 	To iterate over all planets use:
 
@@ -197,6 +204,7 @@ Register A holds index during rep.
 
 =regs
 -cdef a lang_internal_push(lang_internal_a);
+-cdef a! lang_internal_a=lang_internal_pop();
 
 
 =>runtime.lang
