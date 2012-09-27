@@ -106,15 +106,21 @@
 
 
 
-	Conditional is simple ?; which exists if stack is zero.
+	Conditionals are simple ?0; which pops value and exists if it is zero and ?; which
+	exists if not zero.
 
 =cond
 -@macro
 -def returnonzero(l):
--	"?;"
+-	"?0;"
 -	o('if(lang_internal_pop()==0) return;')
 -	return l
 
+-@macro
+-def returnonzero(l):
+-	"?;"
+-	o('if(lang_internal_pop()) return;')
+-	return l
 
 
 	Output is initially accumulated as a list of strings.
