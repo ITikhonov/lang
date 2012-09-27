@@ -117,14 +117,26 @@
 -	return l
 
 -@macro
--def returnonzero(l):
+-def returnonnonzero(l):
 -	"?;"
 -	o('if(lang_internal_pop()) return;')
 -	return l
 
+-@macro
+-def returnonpositive(l):
+-	"?+;"
+-	o('if(((SCELL)lang_internal_pop())>0) return;')
+-	return l
+
+-@macro
+-def returnonnegative(l):
+-	"?-;"
+-	o('if(((SCELL)lang_internal_pop())<0) return;')
+-	return l
 
 	Output is initially accumulated as a list of strings.
 	We also have special case for function prototypes.
+
 
 =coutput
 -def o(x,*a,**kw):
@@ -230,6 +242,7 @@ Register A holds index during rep.
 =regs
 -cdef a lang_internal_push(lang_internal_a);
 -cdef a! lang_internal_a=lang_internal_pop();
+-cdef a++ lang_internal_a++;
 
 
 =>runtime.lang
