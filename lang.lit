@@ -178,6 +178,7 @@
 -		l=trymacro(words)
 -		if l is not None: words=l
 -		elif words[0].isdigit(): o("\tlang_internal_push(%uu);",int(words.pop(0)))
+-		elif words[0][0]=='-' and words[0][1:].isdigit(): o("\tlang_internal_push(%d);",int(words.pop(0)))
 -		elif words[0]==name and len(words)==1:
 -			o("\tgoto _tailcall;")
 -			words.pop(0)
