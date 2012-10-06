@@ -1,7 +1,6 @@
 c #include <stdlib.h>
 c #include <stdio.h>
 
-data planet 128 x y z radius name
 
 cdef exit exit(0);
 cdef print printf("%lu\n",lang_internal_pop());
@@ -9,6 +8,8 @@ cdef print printf("%lu\n",lang_internal_pop());
 printp planet@x print
 
 set 1 + dup planet!x
+
+data planet 128 x y z radius name
 
 main 0 planet.rep set planet.rep printp test -1 print exit
 
