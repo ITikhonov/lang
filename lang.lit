@@ -187,7 +187,23 @@
 -				source[i]=None
 -	source=[x for x in source if x is not None]
 
-	On a second pass we evaluate all data lines:
+	Than we compile all 'c' code.
+
+=cpass
+-def cpass():
+-	global source
+-	for i in range(len(source)):
+-		l=source[i]
+-		t=l.split(None,1)
+-		if not t: continue
+-		name,rest=t
+-		if name=='c':
+-			compile_c(rest)
+-			source[i]=None
+-	source=[x for x in source if x is not None]
+
+
+	On a next pass we evaluate all data lines:
 
 =datapass
 -def datapass():
@@ -223,6 +239,7 @@
 >cond
 >load
 >extendpass
+>cpass
 >datapass
 >codepass
 
@@ -250,7 +267,6 @@
 -	o("}")
 
 -def compile_c(l):
--	print("compile_c",l)
 -	o(l)
 
 -def compile_cdef(rest):
@@ -287,6 +303,7 @@
 
 -load_all(argv[2:])
 -extendpass()
+-cpass()
 -datapass()
 -codepass()
 -open(argv[1],'w').write("\n".join(o.proto+o.code))
