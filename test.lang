@@ -1,6 +1,10 @@
 c #include <stdlib.h>
 c #include <stdio.h>
 
+extend
+	print("HELLO< WORLD!")
+end
+
 
 cdef exit exit(0);
 cdef print printf("%lu\n",lang_internal_pop());

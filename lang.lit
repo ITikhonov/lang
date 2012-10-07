@@ -153,6 +153,64 @@
 -o.proto=[]
 
 
+	First we load all files into memory as lines
+
+=load
+-source=[]
+
+-def load_all(l):
+-	for x in l: source.extend(open(x).readlines())
+
+
+	On a first pass we execute all user's pythonic code:
+
+=extendpass
+-def extendpass():
+-	global source
+-	block=None
+-	for i in range(len(source)):
+-		l=source[i]
+-		t=l.split(None,1)
+-		if not t: continue
+-		if block is None:
+-			if t[0]=='extend':
+-				block=[]
+-				source[i]=None
+-		else:
+-			if t[0]=='end':
+-				print(block)
+-				eval(''.join(block),globals())
+-				block=None
+-				source[i]=None
+-			else:
+-				block.append(l)
+-				source[i]=None
+-	source=[x for x in source if x is not None]
+
+	On a second pass we evaluate all data lines:
+
+=datapass
+-def datapass():
+-	global source
+-	for i in range(len(source)):
+-		l=source[i]
+-		t=l.split(None,1)
+-		if not t: continue
+-		name,rest=t
+-		if name=='data':
+-			compile_data(rest)
+-			source[i]=None
+-	source=[x for x in source if x is not None]
+
+
+	And finally, we compile code
+
+=codepass
+-def codepass():
+-	for l in source:
+-		compile_line(l)
+
+
 
 
 	Initially it was written as illiterate code.
@@ -163,6 +221,10 @@
 >mangle
 >macro
 >cond
+>load
+>extendpass
+>datapass
+>codepass
 
 >coutput
 
@@ -188,6 +250,7 @@
 -	o("}")
 
 -def compile_c(l):
+-	print("compile_c",l)
 -	o(l)
 
 -def compile_cdef(rest):
@@ -222,13 +285,11 @@
 -		compile_file(x)
 -	open(t,'w').write("\n".join(o.proto+o.code))
 
--try:
--	compile_all(argv[1],argv[2:])
--except:
--	print()
--	print('Error at %s:%u'%(pos.name,pos.line))
--	print('\t| %s'%(pos.str,))
--	raise
+-load_all(argv[2:])
+-extendpass()
+-datapass()
+-codepass()
+-open(argv[1],'w').write("\n".join(o.proto+o.code))
 
 -print(trymacro.all)
 
