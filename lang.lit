@@ -178,8 +178,7 @@
 -				source[i]=None
 -		else:
 -			if t[0]=='end':
--				print(block)
--				eval(''.join(block),globals())
+-				exec(''.join(block),globals())
 -				block=None
 -				source[i]=None
 -			else:
@@ -283,23 +282,8 @@
 
 -	name,rest=t
 
--	if name=='c': compile_c(rest)
--	elif name=='data': compile_data(rest)
--	elif name=='cdef': compile_cdef(rest)
+-	if name=='cdef': compile_cdef(rest)
 -	else: compile_def(name,rest)
-
--def compile_file(name):
--	pos.name=name
--	lines=open(name).readlines()
--	for i in range(len(lines)):
--		pos.line=i+1
--		pos.str=lines[i]
--		compile_line(lines[i])
-
--def compile_all(t,l):
--	for x in l:
--		compile_file(x)
--	open(t,'w').write("\n".join(o.proto+o.code))
 
 -load_all(argv[2:])
 -extendpass()
@@ -307,9 +291,6 @@
 -datapass()
 -codepass()
 -open(argv[1],'w').write("\n".join(o.proto+o.code))
-
--print(trymacro.all)
-
 
 Stack operations
 

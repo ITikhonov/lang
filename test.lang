@@ -2,7 +2,11 @@ c #include <stdlib.h>
 c #include <stdio.h>
 
 extend
-	print("HELLO< WORLD!")
+@macro
+def mulmulmul(l):
+	"***"
+	o('printf("*** BYE ***\\n");')
+	return l
 end
 
 
@@ -13,10 +17,11 @@ printp planet@x print
 
 set 1 + dup planet!x
 
-data planet 128 x y z radius name
 
-main 0 planet.rep set planet.rep printp test -1 print exit
+main 0 planet.rep set planet.rep printp test -1 print *** exit
 
 test 0 drop
 
 c void main(void) { lang_main(); }
+
+data planet 128 x y z radius name
