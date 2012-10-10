@@ -307,10 +307,15 @@
 -	if name=='cdef': compile_cdef(rest)
 -	else: compile_def(name,rest)
 
+-userpass=[]
+-def regpass(f):
+-	userpass.append(f)
+
 -err=None
 -load_all(argv[2:])
 -try:
 -	extendpass()
+-	for x in userpass: x()
 -	cpass()
 -	datapass()
 -	codepass()

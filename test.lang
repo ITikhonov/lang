@@ -9,6 +9,17 @@ def mulmulmul(l):
 	return l
 end
 
+extend
+@regpass
+def testpass():
+	print("TESTPASS!")
+	for i in range(len(source)):
+		if 'test test pass' in source[i]:
+			source[i]='nop nop\n'
+end
+
+test test pass
+
 
 cdef exit exit(0);
 cdef print printf("%lu\n",lang_internal_pop());
