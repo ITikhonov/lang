@@ -158,8 +158,24 @@
 =load
 -source=[]
 
+-class posstr(str):
+-	def __new__(c,s,name,line):
+-		o=str.__new__(c,s)
+-		o.name=name
+-		o.line=line
+-		return o
+
+-class CompileError(BaseException):
+-	def __init__(_,l,e):
+-		_.l=l
+-		_.e=e
+
 -def load_all(l):
--	for x in l: source.extend(open(x).readlines())
+-	for x in l:
+-		line=0
+-		for y in open(x):
+-			source.append(posstr(y,x,line))
+-			line+=1
 
 
 	On a first pass we execute all user's pythonic code:
@@ -193,12 +209,15 @@
 -	global source
 -	for i in range(len(source)):
 -		l=source[i]
--		t=l.split(None,1)
--		if not t: continue
--		name,rest=t
--		if name=='c':
--			compile_c(rest)
--			source[i]=None
+-		try:
+-			t=l.split(None,1)
+-			if not t: continue
+-			name,rest=t
+-			if name=='c':
+-				compile_c(rest)
+-				source[i]=None
+-		except Exception as e:
+-			raise CompileError(l,e)
 -	source=[x for x in source if x is not None]
 
 
@@ -223,7 +242,10 @@
 =codepass
 -def codepass():
 -	for l in source:
--		compile_line(l)
+-		try:
+-			compile_line(l)
+-		except Exception as e:
+-			raise CompileError(l,e)
 
 
 
@@ -285,11 +307,18 @@
 -	if name=='cdef': compile_cdef(rest)
 -	else: compile_def(name,rest)
 
+-err=None
 -load_all(argv[2:])
--extendpass()
--cpass()
--datapass()
--codepass()
+-try:
+-	extendpass()
+-	cpass()
+-	datapass()
+-	codepass()
+-except CompileError as s:
+-	print('\nERROR: %s:%s: %s'%(s.l.name,s.l.line,s.l))
+-	err=s
+-if err: raise err.e
+
 -open(argv[1],'w').write("\n".join(o.proto+o.code))
 
 Stack operations
