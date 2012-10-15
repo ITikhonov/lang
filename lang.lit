@@ -75,7 +75,11 @@
 -	fields=args[2:]
 -	o("struct lang_data_%s {",mangle(name))
 -	for x in fields:
--		o("\tCELL %s;",mangle(x))
+-		if ':' in x:
+-			x,t=x.split(':')
+-			o("\t%s %s;",t,mangle(x))
+-		else:
+-			o("\tCELL %s;",mangle(x))
 -	o("} lang_data_%s[%u];",mangle(name),size)
 
 	To access planet field use:
@@ -90,6 +94,8 @@
 -	else: index="lang_internal_a"
 
 -	for x in fields:
+-		if ':' in x:
+-			x,t=x.split(':')
 -		o("static void lang_%s(void) { lang_internal_push(lang_data_%s[%s].%s); }",mangle(name+'@'+x),mangle(name),index,mangle(x))
 -		o("static void lang_%s(void) { lang_data_%s[%s].%s=lang_internal_pop(); }",mangle(name+'!'+x),mangle(name),index,mangle(x))
 -		o("static void lang_%s(void);",mangle(name+'@'+x),proto=1)

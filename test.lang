@@ -35,4 +35,4 @@ test 0 drop
 
 c void main(void) { lang_main(); }
 
-data planet 128 x y z radius name
+data planet 128 x:int32_t y z radius name
