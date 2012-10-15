@@ -326,7 +326,10 @@
 -	datapass()
 -	codepass()
 -except CompileError as s:
--	print('\nERROR: %s:%s: %s'%(s.l.name,s.l.line,s.l))
+-	if type(s.l)==posstr:
+-		print('\nERROR: %s:%s: %s'%(s.l.name,s.l.line,s.l))
+-	else:
+-		print('\nERROR: generated: %s'%(s.l,))
 -	err=s
 -if err: raise err.e
 
