@@ -32,14 +32,15 @@
 	The core of forth is data stack and addressing register.
 
 =stack
+-c #include <assert.h>
 -c #include <stdint.h>
 -c typedef uint64_t CELL;
 -c typedef int64_t SCELL;
 -c static CELL lang_internal_stack[16];
 -c static CELL *lang_internal_tos=lang_internal_stack-1;
 -c static CELL lang_internal_a;
--c void lang_internal_push(CELL x) { lang_internal_tos++; *lang_internal_tos=x; }
--c CELL lang_internal_pop(void) { CELL x=*lang_internal_tos--; return x; }
+-c void lang_internal_push(CELL x) { lang_internal_tos++; assert(lang_internal_tos<lang_internal_stack+16); *lang_internal_tos=x; }
+-c CELL lang_internal_pop(void) { assert(lang_internal_tos>=lang_internal_stack); CELL x=*lang_internal_tos--; return x; }
 
 
 
@@ -66,6 +67,10 @@
 	To create array of 128 planets use:
 
 		data planet 128 x y z radius name
+
+	They then can be accessed by setting index into register
+	'a' and using syntax planet@radius for retreiving field
+	value and planet!radius for storing.
 
 =data
 -def compile_data(rest):
