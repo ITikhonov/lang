@@ -26,7 +26,7 @@ cdef print printf("%lu\n",lang_internal_pop());
 
 printp @[planet x] print
 
-set 1 + dup planet!x
+set 1 + dup ![planet x]
 
 breakstack 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
 

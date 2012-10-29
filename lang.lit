@@ -132,36 +132,7 @@
 -			o("\tCELL %s;",mangle(x))
 -	o("} lang_data_%s[%u];",mangle(name),size)
 
-	To access planet field use:
-
-		planet@radius ( -- v )
-		planet!radius ( v -- )
-
-	For data with size 1 the only record is used always. For
-	other sizes, internal register 'a' used.
-
--	if size==1: index="0"
--	else: index="lang_internal_a"
-
--	for x in fields:
--		if ':' in x:
--			x,t=x.split(':')
--		o("static void lang_%s(void) { lang_internal_push(lang_data_%s[%s].%s); }",mangle(name+'@'+x),mangle(name),index,mangle(x))
--		o("static void lang_%s(void) { lang_data_%s[%s].%s=lang_internal_pop(); }",mangle(name+'!'+x),mangle(name),index,mangle(x))
--		o("static void lang_%s(void);",mangle(name+'@'+x),proto=1)
--		o("static void lang_%s(void);",mangle(name+'!'+x),proto=1)
-
-	To iterate over all planets use:
-
-		planet.each word
-		word ( -- )
 -	compile_data.data[name]=R(size=size,fields=fields)
--	macro(lambda l: template_data_rep(size,l),name+'.rep')
-
--def template_data_rep(size,l):
--	(w,l)=l.split(None,1)
--	o("\tfor(lang_internal_a=0;lang_internal_a<%u;lang_internal_a++) { lang_%s(); }",size,w)
--	return l
 
 -compile_data.data={}
 
