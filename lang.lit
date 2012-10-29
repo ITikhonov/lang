@@ -66,6 +66,14 @@
 -	o("\tlang_internal_push(lang_data_%s[%s].%s);",mangle(n),index,mangle(f))
 -	return r
 
+-@macro
+-def macro_set(l):
+-	"!"
+-	l,r=l.split(']',1)
+-	n,f=l.split()
+-	index='lang_internal_a' if compile_data.data[n].size>1 else '0'
+-	o("\tlang_data_%s[%s].%s=lang_internal_pop();",mangle(n),index,mangle(f))
+-	return r
 
 		Core
 
@@ -310,6 +318,7 @@
 -		rest=rest.lstrip()
 -		orig=rest
 -		s=rest.split(None,1)
+-		if not s: break
 -		word=s[0]
 -		rest=s[1] if len(s)>1 else ''
 -		l=trymacro(word,rest)
