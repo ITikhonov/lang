@@ -27,6 +27,47 @@
 -	trymacro.all[name]=f
 
 
+		Parametric macros
+
+	Parametric macros are written in a form: name[.... Everything past
+	square bracket are up to macro's interpretation.
+
+	Examples are working with data: rep[name word] executes word over name
+	data; @[name field] retrieves field from data name with a register.
+
+=macro
+-class ParametricMacroNotDefined(Exception):
+-	pass
+
+-def parametric_macro(l):
+-	w,r=l.split('[',1)
+-	f=trymacro.all.get(w)
+-	if not f: raise ParametricMacroNotDefined(repr(w))
+-	return f(r)
+
+		Data parametric macros
+
+	rep macro is rep[name word] executes word over name data.
+
+-@macro
+-def macro_rep(l):
+-	"rep"
+-	l,r=l.split(']',1)
+-	n,w=l.split();
+-	o("\tfor(lang_internal_a=0;lang_internal_a<%u;lang_internal_a++) { lang_%s(); }",compile_data.data[n].size,mangle(w))
+-	return r
+
+-@macro
+-def macro_at(l):
+-	"@"
+-	l,r=l.split(']',1)
+-	n,f=l.split()
+-	index='lang_internal_a' if compile_data.data[n].size>1 else '0'
+-	o("\tlang_internal_push(lang_data_%s[%s].%s);",mangle(n),index,mangle(f))
+-	return r
+
+
+		Core
 
 
 	The core of forth is data stack and addressing register.
@@ -73,6 +114,10 @@
 	value and planet!radius for storing.
 
 =data
+-class R():
+-	def __init__(_,**kw):
+-		for x,y in kw.items(): setattr(_,x,y)
+
 -def compile_data(rest):
 -	args=rest.split()
 -	name,size=args[:2]
@@ -110,6 +155,7 @@
 
 		planet.each word
 		word ( -- )
+-	compile_data.data[name]=R(size=size,fields=fields)
 -	macro(lambda l: template_data_rep(size,l),name+'.rep')
 
 -def template_data_rep(size,l):
@@ -117,6 +163,7 @@
 -	o("\tfor(lang_internal_a=0;lang_internal_a<%u;lang_internal_a++) { lang_%s(); }",size,w)
 -	return l
 
+-compile_data.data={}
 
 
 
@@ -289,11 +336,14 @@
 -	o("static void lang_%s(void);",mangle(name),proto=1)
 
 -	while rest:
+-		rest=rest.lstrip()
+-		orig=rest
 -		s=rest.split(None,1)
 -		word=s[0]
 -		rest=s[1] if len(s)>1 else ''
 -		l=trymacro(word,rest)
 -		if l is not None: rest=l
+-		elif '[' in word: rest=parametric_macro(orig)
 -		elif word.isdigit(): o("\tlang_internal_push(%uu);",int(word))
 -		elif word[0]=='-' and word[1:].isdigit(): o("\tlang_internal_push(%d);",int(word))
 -		elif word==name and not rest:
