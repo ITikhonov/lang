@@ -7,9 +7,9 @@
 	returns None.
 
 =macro
--def trymacro(l):
--	f=trymacro.all.get(l[0])
--	if f: return f(l[1:])
+-def trymacro(l,r):
+-	f=trymacro.all.get(l)
+-	if f: return f(r)
 -	return
 -trymacro.all={}
 
@@ -113,8 +113,9 @@
 -	macro(lambda l: template_data_rep(size,l),name+'.rep')
 
 -def template_data_rep(size,l):
--	o("\tfor(lang_internal_a=0;lang_internal_a<%u;lang_internal_a++) { lang_%s(); }",size,l[0])
--	return l[1:]
+-	(w,l)=l.split(None,1)
+-	o("\tfor(lang_internal_a=0;lang_internal_a<%u;lang_internal_a++) { lang_%s(); }",size,w)
+-	return l
 
 
 
@@ -284,18 +285,20 @@
 >data
 
 -def compile_def(name,rest):
--	words=rest.split()
 -	o("static void lang_%s(void) { _tailcall:;",mangle(name))
 -	o("static void lang_%s(void);",mangle(name),proto=1)
--	while words:
--		l=trymacro(words)
--		if l is not None: words=l
--		elif words[0].isdigit(): o("\tlang_internal_push(%uu);",int(words.pop(0)))
--		elif words[0][0]=='-' and words[0][1:].isdigit(): o("\tlang_internal_push(%d);",int(words.pop(0)))
--		elif words[0]==name and len(words)==1:
+
+-	while rest:
+-		s=rest.split(None,1)
+-		word=s[0]
+-		rest=s[1] if len(s)>1 else ''
+-		l=trymacro(word,rest)
+-		if l is not None: rest=l
+-		elif word.isdigit(): o("\tlang_internal_push(%uu);",int(word))
+-		elif word[0]=='-' and word[1:].isdigit(): o("\tlang_internal_push(%d);",int(word))
+-		elif word==name and not rest:
 -			o("\tgoto _tailcall;")
--			words.pop(0)
--		else: o("\tlang_%s();",mangle(words.pop(0)))
+-		else: o("\tlang_%s();",mangle(word))
 -	o("}")
 
 -def compile_c(l):
