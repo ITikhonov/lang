@@ -127,6 +127,10 @@
 -		for x,y in kw.items(): setattr(_,x,y)
 
 -def compile_data(rest):
+-	init=''
+-	if '=' in rest:
+-		rest,init=rest.split('=',1)
+-		init='={'+init+'}'
 -	args=rest.split()
 -	name,size=args[:2]
 -	size=int(size)
@@ -138,7 +142,7 @@
 -			o("\t%s %s;",t,mangle(x))
 -		else:
 -			o("\tCELL %s;",mangle(x))
--	o("} lang_data_%s[%u];",mangle(name),size)
+-	o("} lang_data_%s[%u]%s;",mangle(name),size,init)
 
 -	compile_data.data[name]=R(size=size,fields=fields)
 

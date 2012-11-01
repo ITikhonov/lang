@@ -5,7 +5,7 @@ extend
 @macro
 def mulmulmul(l):
 	"***"
-	o('printf("*** BYE ***\\n");')
+	o('printf("*** CRASHING ***\\n");')
 	return l
 end
 
@@ -32,8 +32,10 @@ breakstack 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
 
 main 0 rep[planet set] rep[planet printp] test -1 print *** breakstack exit
 
-test 0 drop
+test 0 drop @[initialized w] print
 
 c void main(void) { lang_main(); }
 
 data planet 128 x:int32_t y z radius name
+
+data initialized 1 x y z w = {0,1,2,33333}
