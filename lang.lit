@@ -33,7 +33,7 @@
 
 	parametric macros,
 
--		elif '[' in word: rest=parametric_macro(orig)
+-		elif word.startswith('['): rest=parametric_macro(word,rest)
 
 	numbers
 
@@ -129,8 +129,8 @@
 
 		Parametric macros
 
-	Parametric macros are written in a form: name[.... Everything past
-	square bracket are up to macro's interpretation.
+	Parametric macros are written in a form: [name.... Everything past
+	it is up to macro's interpretation.
 
 	Parametric macros are defined in a very same way as simple macros.
 
@@ -138,8 +138,7 @@
 -class ParametricMacroNotDefined(Exception):
 -	pass
 
--def parametric_macro(l):
--	w,r=l.split('[',1)
+-def parametric_macro(w,r):
 -	f=trymacro.all.get(w)
 -	if not f: raise ParametricMacroNotDefined(repr(w))
 -	return f(r)
@@ -148,38 +147,38 @@
 
 	Parametric macros are used to deal with data.
 
-	Macro rep[] is used for iterating over arrays. It
+	Macro [rep] is used for iterating over arrays. It
 	advances internal register 'a', used by other data
 	macros and executes specified word for each element.
 
 =examples
--test-rep rep[pads show-pads]
+-test-rep [rep pads show-pads]
 -test test-rep
 
 =datamacros
 -@macro
 -def macro_rep(l):
--	"rep"
+-	"[rep"
 -	l,r=l.split(']',1)
 -	n,w=l.split();
 -	o("\tfor(lang_internal_a=0;lang_internal_a<%u;lang_internal_a++) { lang_%s(); }",compile_data.data[n].size,mangle(w))
 -	return r
 
-	Macro @[] accepts two parameters: data and field. This macro
+	Macro [@] accepts two parameters: data and field. This macro
 	pushes to stack value of field from array element. Index of
 	element is always zero if array contains only one element or
 	taken from internal register 'a' if array contains several elements.
 
 
 =examples
--show-pads @[pads color] print
--test@ @[person age] print
+-show-pads [@ pads color] print
+-test@ [@ person age] print
 -test test@
 
 =datamacros
 -@macro
 -def macro_at(l):
--	"@"
+-	"[@"
 -	l,r=l.split(']',1)
 -	n,f=l.split()
 -	index='lang_internal_a' if compile_data.data[n].size>1 else '0'
@@ -190,13 +189,13 @@
 	it into field. Array index is derived in the very same ways as in @[].
 
 =examples
--test! 20 ![person age] @[person age] print
+-test! 20 [! person age] [@ person age] print
 -test test!
 
 =datamacros
 -@macro
 -def macro_set(l):
--	"!"
+-	"[!"
 -	l,r=l.split(']',1)
 -	n,f=l.split()
 -	index='lang_internal_a' if compile_data.data[n].size>1 else '0'
@@ -530,7 +529,6 @@ we use 9223372036854775807 as 1.
 -	source=[x for x in source if x is not None]
 -	l=["""printf("%%s: ","%s"); lang_%s(); printf("\\n");"""%(x,mangle(x)) for x in tests]
 -	source.append('cdef test '+ (''.join(l)))
--	print(source[-1])
 -end
 
 >examples

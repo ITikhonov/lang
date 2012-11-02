@@ -24,15 +24,15 @@ test test pass
 cdef exit exit(0);
 cdef print printf("%lu\n",lang_internal_pop());
 
-printp @[planet x] print
+printp [@ planet x] print
 
-set 1 + dup ![planet x]
+set 1 + dup [! planet x]
 
 breakstack 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5
 
-main 0 rep[planet set] rep[planet printp] test -1 print *** breakstack exit
+main 0 [rep planet set] [rep planet printp] test -1 print *** breakstack exit
 
-test 0 drop @[initialized w] print
+test 0 drop [@ initialized w] print
 
 c void main(void) { lang_main(); }
 
