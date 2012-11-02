@@ -1,10 +1,108 @@
-	Macros are words defined in python and are run at compile time.
 
-	Each macro accepts rest of words in the line and returns list of
-	words to replace original with.
+		Forth words
 
-	Function macro searches for macro and executes it. If no macro found,
-	returns None.
+	To define new word simply start line with word name and follow with definition:
+
+=examples
+-washer wash spin rinse spin
+-wash 0 print
+-spin 1 print
+-rinse 2 print
+
+	No explicit end of definition word needed, definition ends when line ends.
+	Sorry, no multiline definitions, this helps keep them short and clean.
+
+=def
+-def compile_def(name,rest):
+-	o("static void lang_%s(void) { _tailcall:;",mangle(name))
+-	o("static void lang_%s(void);",mangle(name),proto=1)
+
+-	while rest:
+-		rest=rest.lstrip()
+-		orig=rest
+-		s=rest.split(None,1)
+-		if not s: break
+-		word=s[0]
+-		rest=s[1] if len(s)>1 else ''
+
+	Definition can contain macros,
+
+-		l=trymacro(word,rest)
+-		if l is not None: rest=l
+
+	parametric macros,
+
+-		elif '[' in word: rest=parametric_macro(orig)
+
+	numbers
+
+-		elif word.isdigit(): o("\tlang_internal_push(%uu);",int(word))
+
+	including negative
+
+-		elif word[0]=='-' and word[1:].isdigit(): o("\tlang_internal_push(%d);",int(word))
+
+	and similarly defined words. Tail call to itself converted to goto.
+
+-		elif word==name and not rest:
+-			o("\tgoto _tailcall;")
+-		else: o("\tlang_%s();",mangle(word))
+-	o("}")
+
+
+		Data
+
+	All data is stored in arrays of structures.
+
+=examples
+	For example, array of 128 vectors defined as:
+
+-data vectors 128 x y z
+
+	Optionally, C type for any field may be specified
+
+-data person 128 id age:float
+
+	If omitted, type is CELL (which is uint64_t).
+
+	Also, C-style initializer may be specified (without outer braces).
+
+-data pads 2 x y color = {0,100,1},{0,-100,2}
+
+
+=data
+-def compile_data(rest):
+-	init=''
+-	if '=' in rest:
+-		rest,init=rest.split('=',1)
+-		init='={'+init+'}'
+-	args=rest.split()
+-	name,size=args[:2]
+-	size=int(size)
+-	fields=args[2:]
+-	o("struct lang_data_%s {",mangle(name))
+-	for x in fields:
+-		if ':' in x:
+-			x,t=x.split(':')
+-			o("\t%s %s;",t,mangle(x))
+-		else:
+-			o("\tCELL %s;",mangle(x))
+-	o("} lang_data_%s[%u]%s;",mangle(name),size,init)
+
+-	compile_data.data[name]=R(size=size,fields=fields)
+
+-compile_data.data={}
+
+
+
+		Macros
+
+	Macros are words defined in python and they are run at compile time. In
+	source code they look like ordinary words.
+
+	Each macro function accepts rest of line, perhaps, emit some C code.
+
+	Macro function should return rest of definition (possibly, modified).
 
 =macro
 -def trymacro(l,r):
@@ -16,10 +114,11 @@
 	Macros are defined with @macro decorator. Macro name is expected to
 	be either have 'm_' prefix or have docstring with real name like
 
-		def newmacro(l):
-			";werid-name"
+		def newmacro(r):
+			";weird/unpythonic/name"
 			...
 
+=macro
 -def macro(f,n=None):
 -	if n: name=n
 -	elif f.__doc__: name=f.__doc__
@@ -32,10 +131,12 @@
 	Parametric macros are written in a form: name[.... Everything past
 	square bracket are up to macro's interpretation.
 
-	Examples are working with data: rep[name word] executes word over name
-	data; @[name field] retrieves field from data name with a register.
+	Parametric macros are defined in a very same way as simple macros.
 
-=macro
+=examples
+-
+
+=parametricmacro
 -class ParametricMacroNotDefined(Exception):
 -	pass
 
@@ -47,6 +148,17 @@
 
 		Data parametric macros
 
+	Parametric macros are used to deal with data.
+
+-@macro
+-def macro_at(l):
+-	"@"
+-	l,r=l.split(']',1)
+-	n,f=l.split()
+-	index='lang_internal_a' if compile_data.data[n].size>1 else '0'
+-	o("\tlang_internal_push(lang_data_%s[%s].%s);",mangle(n),index,mangle(f))
+-	return r
+
 	rep macro is rep[name word] executes word over name data.
 
 -@macro
@@ -57,14 +169,6 @@
 -	o("\tfor(lang_internal_a=0;lang_internal_a<%u;lang_internal_a++) { lang_%s(); }",compile_data.data[n].size,mangle(w))
 -	return r
 
--@macro
--def macro_at(l):
--	"@"
--	l,r=l.split(']',1)
--	n,f=l.split()
--	index='lang_internal_a' if compile_data.data[n].size>1 else '0'
--	o("\tlang_internal_push(lang_data_%s[%s].%s);",mangle(n),index,mangle(f))
--	return r
 
 -@macro
 -def macro_set(l):
@@ -106,47 +210,6 @@
 -def mangle(name):
 -	return ''.join([mangle_char(x) for x in name])
 
-
-
-
-	All data is stored in database fashion. For each type
-	of data schema is defined, which also defines words to
-	access this data.
-
-	To create array of 128 planets use:
-
-		data planet 128 x y z radius name
-
-	They then can be accessed by setting index into register
-	'a' and using syntax planet@radius for retreiving field
-	value and planet!radius for storing.
-
-=data
--class R():
--	def __init__(_,**kw):
--		for x,y in kw.items(): setattr(_,x,y)
-
--def compile_data(rest):
--	init=''
--	if '=' in rest:
--		rest,init=rest.split('=',1)
--		init='={'+init+'}'
--	args=rest.split()
--	name,size=args[:2]
--	size=int(size)
--	fields=args[2:]
--	o("struct lang_data_%s {",mangle(name))
--	for x in fields:
--		if ':' in x:
--			x,t=x.split(':')
--			o("\t%s %s;",t,mangle(x))
--		else:
--			o("\tCELL %s;",mangle(x))
--	o("} lang_data_%s[%u]%s;",mangle(name),size,init)
-
--	compile_data.data[name]=R(size=size,fields=fields)
-
--compile_data.data={}
 
 
 
@@ -299,6 +362,7 @@
 
 >mangle
 >macro
+>parametricmacro
 >cond
 >load
 >extendpass
@@ -312,28 +376,12 @@
 
 -pos=Pos()
 
+-class R():
+-	def __init__(_,**kw):
+-		for x,y in kw.items(): setattr(_,x,y)
+
 >data
-
--def compile_def(name,rest):
--	o("static void lang_%s(void) { _tailcall:;",mangle(name))
--	o("static void lang_%s(void);",mangle(name),proto=1)
-
--	while rest:
--		rest=rest.lstrip()
--		orig=rest
--		s=rest.split(None,1)
--		if not s: break
--		word=s[0]
--		rest=s[1] if len(s)>1 else ''
--		l=trymacro(word,rest)
--		if l is not None: rest=l
--		elif '[' in word: rest=parametric_macro(orig)
--		elif word.isdigit(): o("\tlang_internal_push(%uu);",int(word))
--		elif word[0]=='-' and word[1:].isdigit(): o("\tlang_internal_push(%d);",int(word))
--		elif word==name and not rest:
--			o("\tgoto _tailcall;")
--		else: o("\tlang_%s();",mangle(word))
--	o("}")
+>def
 
 -def compile_c(l):
 -	o(l)
@@ -446,4 +494,9 @@ we use 9223372036854775807 as 1.
 -c #include <sys/time.h>
 >output
 >time
+
+=>examples.lang
+>examples
+-main washer
+-c int main(void) { lang_main(); return 0; }
 
