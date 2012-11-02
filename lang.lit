@@ -8,6 +8,7 @@
 -wash 0 print
 -spin 1 print
 -rinse 2 print
+-test washer
 
 	No explicit end of definition word needed, definition ends when line ends.
 	Sorry, no multiline definitions, this helps keep them short and clean.
@@ -61,7 +62,7 @@
 
 	Optionally, C type for any field may be specified
 
--data person 128 id age:float
+-data person 1 age:float
 
 	If omitted, type is CELL (which is uint64_t).
 
@@ -133,9 +134,6 @@
 
 	Parametric macros are defined in a very same way as simple macros.
 
-=examples
--
-
 =parametricmacro
 -class ParametricMacroNotDefined(Exception):
 -	pass
@@ -150,6 +148,35 @@
 
 	Parametric macros are used to deal with data.
 
+	Macro rep[] is used for iterating over arrays. It
+	advances internal register 'a', used by other data
+	macros and executes specified word for each element.
+
+=examples
+-test-rep rep[pads show-pads]
+-test test-rep
+
+=datamacros
+-@macro
+-def macro_rep(l):
+-	"rep"
+-	l,r=l.split(']',1)
+-	n,w=l.split();
+-	o("\tfor(lang_internal_a=0;lang_internal_a<%u;lang_internal_a++) { lang_%s(); }",compile_data.data[n].size,mangle(w))
+-	return r
+
+	Macro @[] accepts two parameters: data and field. This macro
+	pushes to stack value of field from array element. Index of
+	element is always zero if array contains only one element or
+	taken from internal register 'a' if array contains several elements.
+
+
+=examples
+-show-pads @[pads color] print
+-test@ @[person age] print
+-test test@
+
+=datamacros
 -@macro
 -def macro_at(l):
 -	"@"
@@ -159,17 +186,14 @@
 -	o("\tlang_internal_push(lang_data_%s[%s].%s);",mangle(n),index,mangle(f))
 -	return r
 
-	rep macro is rep[name word] executes word over name data.
+	Macro ![] accepts data and field, pops value from stack and stores
+	it into field. Array index is derived in the very same ways as in @[].
 
--@macro
--def macro_rep(l):
--	"rep"
--	l,r=l.split(']',1)
--	n,w=l.split();
--	o("\tfor(lang_internal_a=0;lang_internal_a<%u;lang_internal_a++) { lang_%s(); }",compile_data.data[n].size,mangle(w))
--	return r
+=examples
+-test! 20 ![person age] @[person age] print
+-test test!
 
-
+=datamacros
 -@macro
 -def macro_set(l):
 -	"!"
@@ -180,7 +204,6 @@
 -	return r
 
 		Core
-
 
 	The core of forth is data stack and addressing register.
 
@@ -195,10 +218,7 @@
 -c void lang_internal_push(CELL x) { lang_internal_tos++; assert(lang_internal_tos<lang_internal_stack+16); *lang_internal_tos=x; }
 -c CELL lang_internal_pop(void) { assert(lang_internal_tos>=lang_internal_stack); CELL x=*lang_internal_tos--; return x; }
 
-
-
-
-	Forth allow many names which are not valid C identifiers.
+	Forth allow names which are not valid C identifiers.
 	We convert everything not in [a-z] into _HEXCHARCODE_. So
 	word 1+ will become _31__2B_
 
@@ -209,8 +229,6 @@
 
 -def mangle(name):
 -	return ''.join([mangle_char(x) for x in name])
-
-
 
 
 	Conditionals are simple ?0; which pops value and exists if it is zero and ?; which
@@ -363,6 +381,7 @@
 >mangle
 >macro
 >parametricmacro
+>datamacros
 >cond
 >load
 >extendpass
@@ -496,7 +515,24 @@ we use 9223372036854775807 as 1.
 >time
 
 =>examples.lang
+-extend
+-@regpass
+-def testpass():
+-	global source
+-	tests=[]
+-	for i in range(len(source)):
+-		s=source[i].split()
+-		if len(s)<2: continue
+-		if s[0]!='test': continue
+
+-		source[i]=None
+-		tests.extend(s[1:])
+-	source=[x for x in source if x is not None]
+-	l=["""printf("%%s: ","%s"); lang_%s(); printf("\\n");"""%(x,mangle(x)) for x in tests]
+-	source.append('cdef test '+ (''.join(l)))
+-	print(source[-1])
+-end
+
 >examples
--main washer
--c int main(void) { lang_main(); return 0; }
+-c int main(void) { lang_test(); return 0; }
 
