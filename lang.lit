@@ -202,6 +202,22 @@
 -	o("\tlang_data_%s[%s].%s=lang_internal_pop();",mangle(n),index,mangle(f))
 -	return r
 
+	Macro [!+ data field] pops value from stack and adds it to field.
+
+=examples
+-test!+ 20 [!+ person age] [@ person age] print
+-test test!+
+
+=datamacros
+-@macro
+-def macro_setadd(l):
+-	"[!+"
+-	l,r=l.split(']',1)
+-	n,f=l.split()
+-	index='lang_internal_a' if compile_data.data[n].size>1 else '0'
+-	o("\tlang_data_%s[%s].%s+=lang_internal_pop();",mangle(n),index,mangle(f))
+-	return r
+
 		Core
 
 	The core of forth is data stack and addressing register.
