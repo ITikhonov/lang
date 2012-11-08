@@ -218,6 +218,62 @@
 -	o("\tlang_data_%s[%s].%s+=lang_internal_pop();",mangle(n),index,mangle(f))
 -	return r
 
+		Floating point
+
+=fstack
+-c float lang_internal_fpop(void) { assert(lang_internal_tos>=lang_internal_stack); float x=*(float*)lang_internal_tos; lang_internal_tos--; return x; }
+-c void lang_internal_fpush(float x) { lang_internal_tos++; assert(lang_internal_tos<lang_internal_stack+16); *(float*)lang_internal_tos=x; }
+
+=fstack
+-extend
+-@macro
+-def macro_f(l):
+-       "[f"
+-       l,r=l.split(']',1)
+-       o("\tlang_internal_fpush(%sf);",l)
+-       return r
+-end
+
+=fstack
+-cdef fprint printf("%f ",lang_internal_fpop());
+
+=examples
+-testf [f 20.0] dup print fprint
+-test testf
+
+=examples
+-data fperson 1 age:float = {10.0}
+-testf@ [f@ fperson age] fprint
+-test testf@
+
+=fdatamacros
+-extend
+-@macro
+-def macro_fat(l):
+-       "[f@"
+-       l,r=l.split(']',1)
+-       n,f=l.split()
+-       index='lang_internal_a' if compile_data.data[n].size>1 else '0'
+-       o("\tlang_internal_fpush(lang_data_%s[%s].%s);",mangle(n),index,mangle(f))
+-       return r
+-end
+
+=examples
+-testf! [f 20.0] [f! fperson age] [f@ fperson age] fprint
+-test testf!
+
+=fdatamacros
+-extend
+-@macro
+-def macro_fset(l):
+-       "[f!"
+-       l,r=l.split(']',1)
+-       n,f=l.split()
+-       index='lang_internal_a' if compile_data.data[n].size>1 else '0'
+-       o("\tlang_data_%s[%s].%s=lang_internal_fpop();",mangle(n),index,mangle(f))
+-       return r
+-end
+
 		Core
 
 	The core of forth is data stack and addressing register.
@@ -528,6 +584,10 @@ we use 9223372036854775807 as 1.
 -c #include <sys/time.h>
 >output
 >time
+
+=>float.lang
+>fstack
+>fdatamacros
 
 =>examples.lang
 -extend
